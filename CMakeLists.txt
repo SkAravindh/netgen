@@ -270,9 +270,9 @@ if (USE_GUI)
 endif (USE_GUI)
 
 #######################################################################
+add_library(netgen_python INTERFACE IMPORTED)
 if (USE_PYTHON)
     add_subdirectory(external_dependencies/pybind11)
-    add_definitions(-DNG_PYTHON)
     find_path(PYBIND_INCLUDE_DIR pybind11/pybind11.h HINTS ${PYTHON_INCLUDE_DIR})
     if( PYBIND_INCLUDE_DIR )
         message(STATUS "Found Pybind11: ${PYBIND_INCLUDE_DIR}")
@@ -280,8 +280,9 @@ if (USE_PYTHON)
         message(FATAL_ERROR "Could NOT find pybind11!")
     endif( PYBIND_INCLUDE_DIR )
 
-    include_directories(${PYBIND_INCLUDE_DIR})
-    include_directories(${PYTHON_INCLUDE_DIRS})
+    target_compile_definitions(netgen_python INTERFACE NG_PYTHON NETGEN_PYTHON)
+    target_include_directories(netgen_python INTERFACE ${PYBIND_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+    target_link_libraries(netgen_python INTERFACE ${PYTHON_LIBRARIES})
 
     if(NG_INSTALL_PYBIND)
       install(DIRECTORY ${PYBIND_INCLUDE_DIR}/pybind11 DESTINATION ${NG_INSTALL_DIR_INCLUDE} COMPONENT netgen_devel)
