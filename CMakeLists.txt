@@ -29,6 +29,7 @@ option( USE_SPDLOG "Enable spd log logging" OFF)
 option( DEBUG_LOG "Enable more debug output (may increase computation time) - only works with USE_SPDLOG=ON" OFF)
 option( CHECK_RANGE "Check array range access, automatically enabled if built in debug mode" OFF)
 option( BUILD_STUB_FILES "Build stub files for better autocompletion" ON)
+option( BUILD_FOR_CONDA "Link python libraries only to executables" OFF)
 
 option( USE_SUPERBUILD       "use ccache" ON)
 
@@ -287,8 +288,8 @@ if (USE_PYTHON)
 
     target_compile_definitions(netgen_python INTERFACE NG_PYTHON NETGEN_PYTHON)
     target_include_directories(netgen_python INTERFACE ${PYBIND_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
-    if(WIN32 OR NOT $ENV{CONDA_BUILD})
-        # Don't link python libraries in unix-conda environments
+    if(NOT ${BUILD_FOR_CONDA})
+        # Don't link python libraries in conda environments
         target_link_libraries(netgen_python INTERFACE ${PYTHON_LIBRARIES})
     endif()
 
