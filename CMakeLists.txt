@@ -282,7 +282,10 @@ if (USE_PYTHON)
 
     target_compile_definitions(netgen_python INTERFACE NG_PYTHON NETGEN_PYTHON)
     target_include_directories(netgen_python INTERFACE ${PYBIND_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
-    target_link_libraries(netgen_python INTERFACE ${PYTHON_LIBRARIES})
+    if(WIN32 OR NOT $ENV{CONDA_BUILD})
+        # Don't link python libraries in unix-conda environments
+        target_link_libraries(netgen_python INTERFACE ${PYTHON_LIBRARIES})
+    endif()
 
     if(NG_INSTALL_PYBIND)
       install(DIRECTORY ${PYBIND_INCLUDE_DIR}/pybind11 DESTINATION ${NG_INSTALL_DIR_INCLUDE} COMPONENT netgen_devel)
