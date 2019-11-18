@@ -270,7 +270,12 @@ if (USE_GUI)
 endif (USE_GUI)
 
 #######################################################################
-add_library(netgen_python INTERFACE IMPORTED)
+if(WIN32)
+    add_library(netgen_python INTERFACE IMPORTED)
+else()
+    add_library(netgen_python INTERFACE)
+endif()
+
 if (USE_PYTHON)
     add_subdirectory(external_dependencies/pybind11)
     find_path(PYBIND_INCLUDE_DIR pybind11/pybind11.h HINTS ${PYTHON_INCLUDE_DIR})
