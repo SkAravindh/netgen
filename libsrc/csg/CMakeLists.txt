@@ -20,7 +20,7 @@ target_link_libraries(csg PUBLIC ngcore)
 
 if(USE_GUI)
     add_library(csgvis ${NG_LIB_TYPE} vscsg.cpp )
-    target_link_libraries(csgvis PRIVATE netgen_python)
+    target_link_libraries(csgvis PRIVATE netgen_python PUBLIC ngcore)
     if(NOT WIN32)
         target_link_libraries(csgvis PUBLIC csg visual)
         if(APPLE)

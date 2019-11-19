@@ -20,6 +20,7 @@ endif()
 
 if(USE_PYTHON)
   target_sources(ngcore PRIVATE python_ngcore.cpp)
+  target_compile_definitions(ngcore PUBLIC NETGEN_PYTHON NG_PYTHON)
 endif(USE_PYTHON)
 
 target_compile_definitions(ngcore PRIVATE NGCORE_EXPORTS)

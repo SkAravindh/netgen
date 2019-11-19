@@ -286,7 +286,6 @@ if (USE_PYTHON)
         message(FATAL_ERROR "Could NOT find pybind11!")
     endif( PYBIND_INCLUDE_DIR )
 
-    target_compile_definitions(netgen_python INTERFACE NG_PYTHON NETGEN_PYTHON)
     target_include_directories(netgen_python INTERFACE ${PYBIND_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
     if(NOT ${BUILD_FOR_CONDA})
         # Don't link python libraries in conda environments
