@@ -30,12 +30,13 @@ if(USE_GUI)
       target_link_libraries( gui PRIVATE ${TCL_LIBRARY} ${TK_LIBRARY})
     endif(NOT APPLE)
 
-    target_link_libraries( netgen nglib gui netgen_python ${MPI_mpi_LIBRARY} ${MPI_CXX_LIBRARIES} ${LIBTOGL} ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES} ${FFMPEG_LIBRARIES} ${X11_Xmu_LIB} ${X11_X11_LIB} ${OCC_LIBRARIES} ${TK_LIBRARY} ${TCL_LIBRARY} ${PYTHON_LIBRARIES})
+    target_link_libraries( netgen nglib gui netgen_python ${MPI_mpi_LIBRARY} ${MPI_CXX_LIBRARIES} ${LIBTOGL} ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES} ${FFMPEG_LIBRARIES} ${X11_Xmu_LIB} ${X11_X11_LIB} ${OCC_LIBRARIES} ${TK_LIBRARY} ${TCL_LIBRARY})
 
     if(NOT WIN32)
       target_link_libraries( netgen mesh stlvis stl geom2dvis interface geom2d csg stl visual csgvis )
       target_link_libraries( gui PUBLIC mesh stlvis stl geom2dvis interface geom2d csg stl visual csgvis )
     endif(NOT WIN32)
+    target_link_libraries( netgen ${PYTHON_LIBRARIES})
 
     install(TARGETS netgen ${NG_INSTALL_DIR})
     install(TARGETS gui ${NG_INSTALL_DIR})
