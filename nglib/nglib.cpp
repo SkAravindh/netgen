@@ -632,7 +632,10 @@ namespace nglib
          */
          geo->AddEdges(readedges);
       }
-
+      // Nikhil - 10/12/2019
+      // Reset readedges to be used later.
+      readedges.SetSize(0);
+      
       if (geo->GetStatus() == STLTopology::STL_GOOD || geo->GetStatus() == STLTopology::STL_WARNING) return NG_OK;
       return NG_SURFACE_INPUT_ERROR;
    }
