@@ -749,7 +749,7 @@ namespace nglib
                                         Ng_Meshing_Parameters * mp)
    {
       NetgenGeometry* ng_geometry = (NetgenGeometry*)geom;
-      shared_ptr<Mesh> m(new Mesh, &NOOP_Deleter);
+      shared_ptr<Mesh> m((Mesh*)mesh, &NOOP_Deleter);
       m->SetGeometry(shared_ptr<NetgenGeometry>(ng_geometry, &NOOP_Deleter));
       mp->Transfer_Parameters();
       int res = ng_geometry -> GenerateMesh (m, mparam);
