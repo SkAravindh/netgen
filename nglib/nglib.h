@@ -130,6 +130,42 @@ public:
    int check_overlapping_boundary;     //!< Check for overlapping surface elements before volume meshing
 
 
+   // Nikhil - 06/12/2019
+   // Added a couple more parameters into the meshing parameters list
+   // from Netgen into Nglib
+   int parthreadenable;                 //!< Enable / Disable parallel threads
+   int nthreads;                        //!< Set number of threads to use
+   
+   double opterrpow;                    //!< Set worst element measure (pow)
+   int blockfillenable;                 //!< Enable / Disable block filling
+   int delaunayenable;                  //!< Enable / Disable delaunay
+   int check_chart_boundary;            //!< Check chart boundary
+   double elsizeweight;                 //!< Set Element size weight
+   int start_step;                      //!< First step
+   int end_step;                        //!< Last step
+   double badellimit;                   //!< Set Bad Element Criterion
+   int element_order;                   //!< Set Element order
+   int auto_z_refine_enable;            //!< Enable / Disable Automatic Z-refinement
+   
+   double yangle;                       //!< Set Yellow edges angle
+   double edgecornerangle;              //!< Set Edge corner angle
+   double chartangle;                   //!< Set chart angle
+   double outerchartangle;              //!< Set outer chart angle
+   double surfcurvfact;                 //!< Set STL - surface curvature
+   int surfcurvenable;                  //!< Enable / Disable STL - surface curvature
+   double chartdistfact;                //!< Set STL - chart distance
+   int chartdistenable;                 //!< Enable / Disable STL - chart distance
+   double edgeanglefact;                //!< Set STL - edge angle
+   int edgeangleenable;                 //!< Enable / Disable STL - edge angle
+   double surfmeshcurvfact;             //!< Set STL - surface mesh curv
+   int surfmeshcurvenable;              //!< Enable / Disable STL - surface mesh curv
+   double linelengthfact;               //!< Set STL - line length
+   int linelengthenable;                //!< Enable / Disable STL - line length
+   int recalc_h_opt_enable;             //!< STL - recalculate mesh size for surface optimization
+
+
+
+
    /*!
       Default constructor for the Mesh Parameters class
 
@@ -154,6 +190,33 @@ public:
       - #invert_trigs:0 
       - #check_overlap: 1
       - #check_overlapping_boundary: 1
+      - #parthreadenable: 0
+      - #nthreads: 4
+      - #opterrpow: 2
+      - #blockfillenable: 1
+      - #delaunayenable: 1
+      - #check_chart_boundary: 1
+      - #elsizeweight: 0.2
+      - #start_step: 0              steps: { 1: Analyse Geometry, 2: Mesh Edges, 3: Mesh Surface,
+      - #end_step: 6                         4: Optimize Surface, 5: Mesh Volume, 6: Optimize Volume }
+      - #badellimit: 175
+      - #element_order: 1
+      - #auto_z_refine_enable: 0
+      - #yangle: 30
+      - #edgecornerangle: 60
+      - #chartangle: 15
+      - #outerchartangle: 70
+      - #surfcurvfact: 2
+      - #surfcurvenable: 0
+      - #chartdistfact: 1.2
+      - #chartdistenable: 1
+      - #edgeanglefact: 1.2
+      - #edgeangleenable: 0
+      - #surfmeshcurvfact: 1
+      - #surfmeshcurvenable: 0
+      - #linelengthfact: 0.5
+      - #linelengthenable: 1
+      - #recalc_h_opt_enable: 1
    */
    DLL_HEADER Ng_Meshing_Parameters();
 
@@ -625,6 +688,12 @@ DLL_HEADER Ng_Result Ng_STL_MakeEdges (Ng_STL_Geometry * geom,
 DLL_HEADER Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
                                                  Ng_Mesh * mesh,
                                                  Ng_Meshing_Parameters * mp);
+
+// Nikhil - 09/12/2019
+// generates 3D mesh, empty mesh need not be created.
+DLL_HEADER Ng_Result Ng_GenerateMesh (Ng_STL_Geometry * geom,
+                                      Ng_Mesh * mesh,
+                                      Ng_Meshing_Parameters * mp);
 
 
 #ifdef ACIS

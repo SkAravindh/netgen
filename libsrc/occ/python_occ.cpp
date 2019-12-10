@@ -31,17 +31,6 @@ minedgelen: Optional[float] = 0.001
 
 void CreateOCCParametersFromKwargs(OCCParameters& occparam, py::dict kwargs)
 {
-  if(kwargs.contains("closeedgefac"))
-    {
-      auto val = kwargs.attr("pop")("closeedgefac");
-      if(val.is_none())
-        occparam.resthcloseedgeenable = false;
-      else
-        {
-          occparam.resthcloseedgefac = py::cast<double>(val);
-          occparam.resthcloseedgeenable = true;
-        }
-    }
   if(kwargs.contains("minedgelen"))
     {
       auto val = kwargs.attr("pop")("minedgelen");
@@ -188,7 +177,9 @@ DLL_HEADER void ExportNgOCC(py::module &m)
                            geo->SetOCCParameters(occparam);
                            auto mesh = make_shared<Mesh>();
                            mesh->SetGeometry(geo);
-                           geo->GenerateMesh(mesh, mp);
+                           auto result = geo->GenerateMesh(mesh, mp);
+                           if(result != 0)
+                             throw Exception("Meshing failed!");
                            SetGlobalMesh(mesh);
                            ng_geometry = geo;
                            return mesh;

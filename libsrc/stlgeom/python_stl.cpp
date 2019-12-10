@@ -87,17 +87,6 @@ void CreateSTLParametersFromKwargs(STLParameters& stlparam, py::dict kwargs)
       stlparam.resthchartdistfac = py::cast<double>(val);
     }
   }
-  if(kwargs.contains("closeedgefac"))
-  {
-    auto val = kwargs.attr("pop")("closeedgefac");
-    if(val.is_none())
-      stlparam.resthcloseedgeenable = false;
-    else
-    {
-      stlparam.resthcloseedgeenable = true;
-      stlparam.resthcloseedgefac = py::cast<double>(val);
-    }
-  }
   if(kwargs.contains("edgeanglefac"))
   {
     auto val = kwargs.attr("pop")("edgeanglefac");
@@ -216,7 +205,10 @@ DLL_HEADER void ExportSTL(py::module & m)
                            mesh->SetGeometry(geo);
                            ng_geometry = geo;
                            SetGlobalMesh(mesh);
-                           STLMeshingDummy(geo.get(), mesh, mp, stlparam);
+                           auto result = STLMeshingDummy(geo.get(), mesh, mp, stlparam);
+                           if(result != 0)
+                             throw Exception("Meshing failed!");
+
                            return mesh;
                          }, py::arg("mp") = nullptr,
       py::call_guard<py::gil_scoped_release>(),

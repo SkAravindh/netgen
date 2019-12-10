@@ -32,7 +32,20 @@ namespace netgen
     virtual double CalcStep(double t, double sag) const = 0;
     virtual bool OrientedLikeGlobal() const = 0;
     virtual size_t GetHash() const = 0;
-    virtual Array<Point<3>> GetEquidistantPointArray(size_t npoints) const;
+    virtual void ProjectPoint(Point<3>& p, EdgePointGeomInfo* gi) const = 0;
+    virtual void PointBetween(const Point<3>& p1,
+                              const Point<3>& p2,
+                              double secpoint,
+                              const EdgePointGeomInfo& gi1,
+                              const EdgePointGeomInfo& gi2,
+                              Point<3>& newp,
+                              EdgePointGeomInfo& newgi) const
+    {
+      newp = p1 + secpoint * (p2-p1);
+      newgi = gi1;
+      ProjectPoint(newp, &newgi);
+    }
+    virtual Vec<3> GetTangent(double t) const = 0;
   };
 
   class GeometryFace
@@ -42,9 +55,16 @@ namespace netgen
     virtual size_t GetNBoundaries() const = 0;
     virtual Array<unique_ptr<GeometryEdge>> GetBoundary(size_t index) const = 0;
     virtual string GetName() const { return "default"; }
+    virtual PointGeomInfo Project(Point<3>& p) const = 0;
     // Project point using geo info. Fast if point is close to
     // parametrization in geo info.
     virtual bool ProjectPointGI(Point<3>& p, PointGeomInfo& gi) const =0;
+    virtual bool CalcPointGeomInfo(const Point<3>& p, PointGeomInfo& gi) const
+    {
+      auto pnew = p;
+      gi = Project(pnew);
+      return (p-pnew).Length() < 1e-10 * GetBoundingBox().Diam() ;
+    }
     virtual Point<3> GetPoint(const PointGeomInfo& gi) const = 0;
     virtual void CalcEdgePointGI(const GeometryEdge& edge,
                                  double t,
@@ -55,6 +75,23 @@ namespace netgen
     virtual double GetCurvature(const PointGeomInfo& gi) const = 0;
 
     virtual void RestrictH(Mesh& mesh, const MeshingParameters& mparam) const = 0;
+    virtual Vec<3> GetNormal(const Point<3>& p, const PointGeomInfo* gi = nullptr) const = 0;
+
+    virtual void PointBetween(const Point<3>& p1,
+                              const Point<3>& p2,
+                              double secpoint,
+                              const PointGeomInfo& gi1,
+                              const PointGeomInfo& gi2,
+                              Point<3>& newp,
+                              PointGeomInfo& newgi) const
+    {
+      newp = p1 + secpoint * (p2-p1);
+      newgi.trignum = gi1.trignum;
+      newgi.u = 0.5 * (gi1.u + gi1.u);
+      newgi.v = 0.5 * (gi1.v + gi2.v);
+      if(!ProjectPointGI(newp, newgi))
+        newgi = Project(newp);
+    }
 
   protected:
     void RestrictHTrig(Mesh& mesh,
@@ -99,27 +136,27 @@ namespace netgen
 
     virtual void FinalizeMesh(Mesh& mesh) const {}
 
-    virtual void ProjectPoint (int surfind, Point<3> & p) const
-    { }
-    virtual void ProjectPointEdge (int surfind, int surfind2, Point<3> & p) const { }
-  virtual void ProjectPointEdge (int surfind, int surfind2, Point<3> & p, EdgePointGeomInfo& gi) const
-  { ProjectPointEdge(surfind, surfind2, p); }
+    virtual PointGeomInfo ProjectPoint (int surfind, Point<3> & p) const
+    {
+      return faces[surfind-1]->Project(p);
+    }
 
-    virtual bool CalcPointGeomInfo(int surfind, PointGeomInfo& gi, const Point<3> & p3) const {return false;}
+  virtual void ProjectPointEdge (int surfind, int surfind2, Point<3> & p, EdgePointGeomInfo* gi = nullptr) const
+  {
+    edges[gi->edgenr]->ProjectPoint(p, gi);
+  }
+
+    virtual bool CalcPointGeomInfo(int surfind, PointGeomInfo& gi, const Point<3> & p3) const
+    {
+      return faces[surfind-1]->CalcPointGeomInfo(p3, gi);
+    }
     virtual bool ProjectPointGI (int surfind, Point<3> & p, PointGeomInfo & gi) const
     {
-      throw Exception("ProjectPointGI not overloaded in class" + Demangle(typeid(*this).name()));
+      return faces[surfind-1]->ProjectPointGI(p, gi);
     }
 
-    virtual Vec<3> GetNormal(int surfind, const Point<3> & p) const
-    { return {0.,0.,1.}; }
-    virtual Vec<3> GetNormal(int surfind, const Point<3> & p, const PointGeomInfo & gi) const
-    { return GetNormal(surfind, p); }
-    [[deprecated]]
-    void GetNormal(int surfind, const Point<3> & p, Vec<3> & n) const
-    {
-      n = GetNormal(surfind, p);
-    }
+    virtual Vec<3> GetNormal(int surfind, const Point<3> & p, const PointGeomInfo* gi = nullptr) const
+    { return faces[surfind-1]->GetNormal(p, gi); }
 
     virtual void PointBetween (const Point<3> & p1,
                                const Point<3> & p2, double secpoint,
@@ -129,6 +166,11 @@ namespace netgen
                                Point<3> & newp,
                                PointGeomInfo & newgi) const
     {
+      if(faces.Size())
+        {
+          faces[surfi-1]->PointBetween(p1, p2, secpoint, gi1, gi2, newp, newgi);
+          return;
+        }
       newp = p1 + secpoint * (p2-p1);
     }
 
@@ -140,13 +182,21 @@ namespace netgen
                                   Point<3> & newp,
                                   EdgePointGeomInfo & newgi) const
     {
+      if(edges.Size())
+        {
+          edges[ap1.edgenr]->PointBetween(p1, p2, secpoint,
+                                          ap1, ap2, newp, newgi);
+          return;
+        }
       newp = p1+secpoint*(p2-p1);
     }
 
     virtual Vec<3> GetTangent(const Point<3> & p, int surfi1,
                               int surfi2,
                               const EdgePointGeomInfo & egi) const
-    { throw Exception("Call GetTangent of " + Demangle(typeid(*this).name())); }
+    {
+      throw Exception("Base geometry get tangent called");
+    }
 
     virtual size_t GetEdgeIndex(const GeometryEdge& edge) const
     {
