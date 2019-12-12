@@ -416,11 +416,11 @@ namespace netgen
         if(!(geom.face_colours.IsNull())
            && (geom.face_colours->GetColor(face,XCAFDoc_ColorSurf,face_colour)))
           {
-            mesh.GetFaceDescriptor(facenr).SetSurfColour(Vec3d(face_colour.Red(),face_colour.Green(),face_colour.Blue()));
+            mesh.GetFaceDescriptor(facenr).SetSurfColour({face_colour.Red(),face_colour.Green(),face_colour.Blue()});
           }
         else
           {
-            mesh.GetFaceDescriptor(facenr).SetSurfColour(Vec3d(0.0,1.0,0.0));
+            mesh.GetFaceDescriptor(facenr).SetSurfColour({0.0,1.0,0.0});
           }
 
         if(geom.fnames.Size()>=facenr) 
@@ -1110,7 +1110,9 @@ namespace netgen
               {
                 double s = s0 + j/(double) nsections * (s1-s0);
                 prop.SetParameter (s);
-                double curvature = prop.Curvature();
+                double curvature = 0;
+                if(prop.IsTangentDefined())
+                  curvature = prop.Curvature();
                 if(curvature> maxcur) maxcur = curvature;
 
                 if (curvature >= 1e99)
@@ -1174,7 +1176,7 @@ namespace netgen
 
         // setting close edges
 
-        if (occparam.resthcloseedgeenable)
+        if (mparam.closeedgefac.has_value())
           {
             multithread.task = "Setting local mesh size (close edges)";
 
@@ -1259,7 +1261,7 @@ namespace netgen
                     mindist = min (mindist, line.Dist(lines[num]));
                   }
 
-                mindist /= (occparam.resthcloseedgefac + VSMALL);
+                mindist /= (*mparam.closeedgefac + VSMALL);
 
                 if (mindist < 1e-3 * bb.Diam())
                   {

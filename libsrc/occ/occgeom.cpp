@@ -21,6 +21,7 @@
 #include "XSControl_WorkSession.hxx"
 #include "XSControl_TransferReader.hxx"
 #include "StepRepr_RepresentationItem.hxx"
+#include "StepBasic_ProductDefinitionRelationship.hxx"
 
 #ifndef _Standard_Version_HeaderFile
 #include <Standard_Version.hxx>
@@ -37,42 +38,38 @@
 
 namespace netgen
 {
-void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * aReader, char * acName)
-{
-   const Handle(XSControl_WorkSession)& theSession = aReader->Reader().WS();
-   const Handle(XSControl_TransferReader)& aTransferReader =
-      theSession->TransferReader();
+  string STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * aReader)
+  {
+    const Handle(XSControl_WorkSession)& theSession = aReader->Reader().WS();
+    const Handle(XSControl_TransferReader)& aTransferReader =
+        theSession->TransferReader();
 
-   Handle(Standard_Transient) anEntity =
-      aTransferReader->EntityFromShapeResult(theShape, 1);
+    Handle(Standard_Transient) anEntity =
+        aTransferReader->EntityFromShapeResult(theShape, 1);
 
-   if (anEntity.IsNull()) {
-      // as just mapped
-      anEntity = aTransferReader->EntityFromShapeResult (theShape,-1);
-   }
+    if (anEntity.IsNull()) // as just mapped
+        anEntity = aTransferReader->EntityFromShapeResult (theShape,-1);
 
-   if (anEntity.IsNull()) {
-      // as anything
-      anEntity = aTransferReader->EntityFromShapeResult (theShape,4);
-   }
+    if (anEntity.IsNull()) // as anything
+        anEntity = aTransferReader->EntityFromShapeResult (theShape,4);
 
-   if (anEntity.IsNull()) {
-      cout<<"Warning: XSInterVertex_STEPReader::ReadAttributes()\nentity not found"<<endl;
-      strcpy(acName, "none");
-   }
-   else
-   {
-      Handle(StepRepr_RepresentationItem) aReprItem;
-      aReprItem =
-         Handle(StepRepr_RepresentationItem)::DownCast(anEntity);
-
-      if (aReprItem.IsNull()) {
-         cout<<"Error: STEPReader::ReadAttributes():\nStepRepr_RepresentationItem Is NULL"<<endl;
+    if (anEntity.IsNull())
+      {
+        cout<<"Warning: cannot get entity from shape" <<endl;
+        return "none";
       }
-      else
-         strcpy(acName, aReprItem->Name()->ToCString());
-   }
-}
+
+    auto aReprItem = Handle(StepRepr_RepresentationItem)::DownCast(anEntity);
+    if(!aReprItem.IsNull())
+        return aReprItem->Name()->ToCString();;
+
+    auto bReprItem = Handle(StepBasic_ProductDefinitionRelationship)::DownCast(anEntity);
+    if (!bReprItem.IsNull())
+        return bReprItem->Description()->ToCString();
+
+    cout<<"Warning: unknown entity type " << anEntity->DynamicType() << endl;
+    return "none";
+  }
 
   void OCCGeometry :: Analyse(Mesh& mesh,
                               const MeshingParameters& mparam) const
@@ -1034,7 +1031,7 @@ void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * a
       SetCenter();
    }
 
-   void OCCGeometry :: ProjectPoint(int surfi, Point<3> & p) const
+   PointGeomInfo OCCGeometry :: ProjectPoint(int surfi, Point<3> & p) const
    {
       static int cnt = 0;
       if (++cnt % 1000 == 0) cout << "Project cnt = " << cnt << endl;
@@ -1048,9 +1045,12 @@ void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * a
       suval.Coord( u, v);
       pnt = thesurf->Value( u, v );
 
-
+      PointGeomInfo gi;
+      gi.trignum = surfi;
+      gi.u = u;
+      gi.v = v;
       p = Point<3> (pnt.X(), pnt.Y(), pnt.Z());
-
+      return gi;
    }
 
   bool OCCGeometry :: ProjectPointGI(int surfind, Point<3>& p, PointGeomInfo& gi) const
@@ -1069,7 +1069,7 @@ void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * a
   }
 
   void OCCGeometry :: ProjectPointEdge(int surfind, INDEX surfind2,
-						   Point<3> & p) const
+                                       Point<3> & p, EdgePointGeomInfo* gi) const
   {
     TopExp_Explorer exp0, exp1;
     bool done = false;
@@ -1151,26 +1151,25 @@ void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * a
       return true;
    }
 
-  Vec<3> OCCGeometry :: GetNormal(int surfind, const Point<3> & p, const PointGeomInfo & geominfo) const
+  Vec<3> OCCGeometry :: GetNormal(int surfind, const Point<3> & p, const PointGeomInfo* geominfo) const
   {
-    gp_Pnt pnt;
-    gp_Vec du, dv;
+    if(geominfo)
+      {
+        gp_Pnt pnt;
+        gp_Vec du, dv;
 
-    Handle(Geom_Surface) occface;
-    occface = BRep_Tool::Surface(TopoDS::Face(fmap(surfind)));
+        Handle(Geom_Surface) occface;
+        occface = BRep_Tool::Surface(TopoDS::Face(fmap(surfind)));
 
-    occface->D1(geominfo.u,geominfo.v,pnt,du,dv);
+        occface->D1(geominfo->u,geominfo->v,pnt,du,dv);
 
-    auto n = Cross (Vec<3>(du.X(), du.Y(), du.Z()),
-	       Vec<3>(dv.X(), dv.Y(), dv.Z()));
-    n.Normalize();
+        auto n = Cross (Vec<3>(du.X(), du.Y(), du.Z()),
+                        Vec<3>(dv.X(), dv.Y(), dv.Z()));
+        n.Normalize();
 
-    if (fmap(surfind).Orientation() == TopAbs_REVERSED) n *= -1;
-    return n;
-  }
-
-  Vec<3> OCCGeometry :: GetNormal(int surfind, const Point<3> & p) const
-  {
+        if (fmap(surfind).Orientation() == TopAbs_REVERSED) n *= -1;
+        return n;
+      }
     Standard_Real u,v;
 
     gp_Pnt pnt(p(0), p(1), p(2));
@@ -1378,24 +1377,29 @@ void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * a
 
       occgeo->CalcBoundingBox();
       PrintContents (occgeo);
-      char * name = new char[50];
-      //string name;
-      STEP_GetEntityName(occgeo->shape,&reader,name);
-      occgeo->snames.Append(name);
+      string name;
       TopExp_Explorer exp0,exp1;
       
       timer_getnames.Start();
+      for (exp0.Init(occgeo->shape, TopAbs_SOLID); exp0.More(); exp0.Next())
+      {
+         TopoDS_Solid solid = TopoDS::Solid(exp0.Current());
+         name = STEP_GetEntityName(solid,&reader);
+         if (name == "")
+             name = string("domain_") + ToString(occgeo->snames.Size());
+         occgeo->snames.Append(name);
+      }
       for (exp0.Init(occgeo->shape, TopAbs_FACE); exp0.More(); exp0.Next())
       {
          TopoDS_Face face = TopoDS::Face(exp0.Current());
-         STEP_GetEntityName(face,&reader,name);
-         if (name == string(""))
-             snprintf(name, 50, "bc_%zu", occgeo->fnames.Size());
+         name = STEP_GetEntityName(face,&reader);
+         if (name == "")
+             name = string("bc_") + ToString(occgeo->fnames.Size());
          occgeo->fnames.Append(name);
 //          for (exp1.Init(face, TopAbs_EDGE); exp1.More(); exp1.Next())
 //          {
 //             TopoDS_Edge edge = TopoDS::Edge(exp1.Current());
-//             STEP_GetEntityName(edge,&reader,name);
+//             name = STEP_GetEntityName(edge,&reader);
 //             occgeo->enames.Append(name);
 //          }
       }
@@ -1895,8 +1899,6 @@ void STEP_GetEntityName(const TopoDS_Shape & theShape, STEPCAFControl_Reader * a
   void OCCParameters :: Print(ostream & ost) const
    {
       ost << "OCC Parameters:" << endl
-         << "close edges: " << resthcloseedgeenable
-         << ", fac = " << resthcloseedgefac << endl
 		 << "minimum edge length: " << resthminedgelenenable
 		 << ", min len = " << resthminedgelen << endl;
    }

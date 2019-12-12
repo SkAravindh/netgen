@@ -515,8 +515,7 @@ namespace nglib
                                             Ng_Mesh ** mesh,
                                             Ng_Meshing_Parameters * mp)
    {
-      // use global variable mparam
-      //  MeshingParameters mparam;  
+      // use global variable mparamno matching function for call to ‘netgen::NetgenGeometry::NetgenGeometry(void**&)
       mp->Transfer_Parameters();
 
       shared_ptr<Mesh> m(new Mesh, &NOOP_Deleter);
@@ -633,7 +632,10 @@ namespace nglib
          */
          geo->AddEdges(readedges);
       }
-
+      // Nikhil - 10/12/2019
+      // Reset readedges to be used later.
+      readedges.SetSize(0);
+      
       if (geo->GetStatus() == STLTopology::STL_GOOD || geo->GetStatus() == STLTopology::STL_WARNING) return NG_OK;
       return NG_SURFACE_INPUT_ERROR;
    }
@@ -745,6 +747,19 @@ namespace nglib
    }
 
 
+   DLL_HEADER Ng_Result Ng_GenerateMesh(Ng_STL_Geometry * geom,
+                                        Ng_Mesh* mesh,
+                                        Ng_Meshing_Parameters * mp)
+   {
+      NetgenGeometry* ng_geometry = (NetgenGeometry*)geom;
+      shared_ptr<Mesh> m((Mesh*)mesh, &NOOP_Deleter);
+      m->SetGeometry(shared_ptr<NetgenGeometry>(ng_geometry, &NOOP_Deleter));
+      mp->Transfer_Parameters();
+      int res = ng_geometry -> GenerateMesh (m, mparam);
+      if (res != MESHING3_OK)
+         return NG_ERROR;
+      return NG_OK;  
+   }
 
 
    // fills STL Geometry
@@ -994,8 +1009,8 @@ namespace nglib
       closeedgeenable = 0;
       closeedgefact = 2.0;
 
-	  minedgelenenable = 0;
-	  minedgelen = 1e-4;
+      minedgelenenable = 0;
+      minedgelen = 1e-4;
 
       second_order = 0;
       quad_dominated = 0;
@@ -1013,6 +1028,36 @@ namespace nglib
 
       check_overlap = 1;
       check_overlapping_boundary = 1;
+
+      parthreadenable = 0;
+      nthreads = 4;
+
+      opterrpow = 2;
+      blockfillenable = 1;
+      delaunayenable = 1;
+      check_chart_boundary = 1;
+      elsizeweight = 0.2;
+      start_step = 0;
+      end_step = 6;
+      badellimit = 175;
+      element_order = 1;
+      auto_z_refine_enable = 0;
+      
+      yangle = 30;
+      edgecornerangle = 60; 
+      chartangle = 15;
+      outerchartangle = 70;
+      surfcurvfact = 2;
+      surfcurvenable = 0;
+      chartdistfact = 1.2;
+      chartdistenable = 1;
+      edgeanglefact = 1;
+      edgeangleenable = 0;
+      surfmeshcurvfact = 1;
+      surfmeshcurvenable = 0;
+      linelengthfact = 0.5;
+      linelengthenable = 1;
+      recalc_h_opt_enable = 1;
    }
 
 
@@ -1035,8 +1080,8 @@ namespace nglib
       closeedgeenable = 0;
       closeedgefact = 2.0;
 
-  	  minedgelenenable = 0;
-	  minedgelen = 1e-4;
+      minedgelenenable = 0;
+      minedgelen = 1e-4;
 
       second_order = 0;
       quad_dominated = 0;
@@ -1054,6 +1099,36 @@ namespace nglib
 
       check_overlap = 1;
       check_overlapping_boundary = 1;
+
+      parthreadenable = 0;
+      nthreads = 4;
+
+      opterrpow = 2;
+      blockfillenable = 1;
+      delaunayenable = 1;
+      check_chart_boundary = 1;
+      elsizeweight = 0.2;
+      start_step = 0;
+      end_step = 6;
+      badellimit = 175;
+      element_order = 1;
+      auto_z_refine_enable = 0;
+      
+      yangle = 30;
+      edgecornerangle = 60; 
+      chartangle = 15;
+      outerchartangle = 70;
+      surfcurvfact = 2;
+      surfcurvenable = 0;
+      chartdistfact = 1.2;
+      chartdistenable = 1;
+      edgeanglefact = 1;
+      edgeangleenable = 0;
+      surfmeshcurvfact = 1;
+      surfmeshcurvenable = 0;
+      linelengthfact = 0.5;
+      linelengthenable = 1;
+      recalc_h_opt_enable = 1;
    }
 
 
@@ -1086,6 +1161,39 @@ namespace nglib
 
       mparam.checkoverlap = check_overlap;
       mparam.checkoverlappingboundary = check_overlapping_boundary;
+
+      mparam.parthread = parthreadenable;
+      mparam.nthreads = nthreads;
+
+      mparam.opterrpow = opterrpow;
+      mparam.blockfill = blockfillenable;
+      mparam.delaunay = delaunayenable;
+      mparam.checkchartboundary = check_chart_boundary;
+      mparam.elsizeweight = elsizeweight;
+      mparam.perfstepsstart = start_step;
+      mparam.perfstepsend = end_step;
+      mparam.badellimit = badellimit;
+      mparam.elementorder = element_order;
+      mparam.autozrefine = auto_z_refine_enable;
+
+      if(closeedgeenable)
+         mparam.closeedgefac = closeedgefact;
+      else
+         mparam.closeedgefac = nullopt;
+      
+      stlparam.yangle = yangle;
+      stlparam.edgecornerangle = edgecornerangle;
+      stlparam.chartangle = chartangle;
+      stlparam.outerchartangle = outerchartangle;
+      stlparam.resthsurfcurvfac = surfcurvfact;
+      stlparam.resthsurfcurvenable = surfcurvenable;
+      stlparam.resthchartdistfac = chartdistfact;
+      stlparam.resthchartdistenable = chartdistenable;
+      stlparam.resthedgeanglefac = edgeanglefact;
+      stlparam.resthedgeangleenable = edgeangleenable;
+      stlparam.resthlinelengthfac = linelengthfact;
+      stlparam.resthlinelengthenable = linelengthenable;
+      stlparam.recalc_h_opt = recalc_h_opt_enable;
    }
    // ------------------ End - Meshing Parameters related functions --------------------
 

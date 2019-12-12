@@ -1283,6 +1283,10 @@ namespace netgen
 
     mparam.parallel_meshing = atoi (Tcl_GetVar (interp, "::options.parallel_meshing", 0));
     mparam.nthreads = atoi (Tcl_GetVar (interp, "::options.nthreads", 0));
+    if(atoi(Tcl_GetVar (interp, "::stloptions.resthcloseedgeenable", 0)))
+      mparam.closeedgefac = atof(Tcl_GetVar (interp, "::stloptions.resthcloseedgefac", 0));
+    else
+      mparam.closeedgefac = {};
 
     //BaseMoveableMem::totalsize = 0;
     // 1048576 * atoi (Tcl_GetVar (interp, "::options.memory", 0));
@@ -1386,100 +1390,91 @@ namespace netgen
 
   void * MeshingDummy (void *)
   {
-
     const char * savetask = multithread.task;
     multithread.task = "Generate Mesh";
-
     ResetTime();
-
-
     try
+    {
+
+    #ifdef LOG_STREAM
+      (*logout) << "Start meshing" << endl;
+      (*logout) << "Meshing parameters:" << endl;
+      mparam.Print (*logout);
+    #endif
+
+    #ifdef ACIS
+      if (acisgeometry)
+        {
+          ACISGenerateMesh(*acisgeometry, mesh.Ptr(), perfstepsstart, perfstepsend, optstring);
+        }
+      else
+    #endif
+      if (ng_geometry) 
       {
+        if (perfstepsstart == 1)
+        {
+          mesh = make_shared<Mesh> ();
+          // vsmesh.SetMesh (mesh);
+          SetGlobalMesh (mesh);
+          mesh -> SetGeometry(ng_geometry);
+        }
+        if(!mesh)
+          throw Exception("Need existing global mesh");
+        mparam.perfstepsstart = perfstepsstart;
+        mparam.perfstepsend = perfstepsend;
+        if(optstring)
+          mparam.optimize3d = *optstring;
+        int res = ng_geometry -> GenerateMesh (mesh, mparam);
 
-#ifdef LOG_STREAM
-	(*logout) << "Start meshing" << endl;
-	(*logout) << "Meshing parameters:" << endl;
-	mparam.Print (*logout);
-#endif
-
-#ifdef ACIS
-	if (acisgeometry)
-	  {
-	    ACISGenerateMesh(*acisgeometry, mesh.Ptr(), perfstepsstart, perfstepsend, optstring);
-	  }
-	else
-#endif
-          if (ng_geometry)
-	    {
-              if (perfstepsstart == 1)
-                {
-                  mesh = make_shared<Mesh> ();
-                  // vsmesh.SetMesh (mesh);
-                  SetGlobalMesh (mesh);
-                  mesh -> SetGeometry(ng_geometry);
-                }
-              if(!mesh)
-                throw Exception("Need existing global mesh");
-              mparam.perfstepsstart = perfstepsstart;
-	      mparam.perfstepsend = perfstepsend;
-              if(optstring)
-                mparam.optimize3d = *optstring;
-              int res = ng_geometry -> GenerateMesh (mesh, mparam);
-
-	      if (res != MESHING3_OK) 
-		{
-		  multithread.task = savetask;
-		  multithread.running = 0;
-		  return 0;
-		}
-	    }
-          else if (mesh)
-            {
-              if(perfstepsstart > 1 && perfstepsstart < 5)
-                throw Exception("Need geometry for surface mesh operations!");
-              MeshVolume(mparam, *mesh);
-              OptimizeVolume(mparam, *mesh);
-              return 0;
-            }
-          else // no ng_geometry
-            {
-              multithread.task = savetask;
-              multithread.running = 0;
-              return 0;
-            }
-
-
-
-	if (mparam.autozrefine)
-	  {
-	    ZRefinementOptions opt;
-	    opt.minref = 5;
-	    ZRefinement (*mesh, ng_geometry.get(), opt);
-	    mesh -> SetNextMajorTimeStamp();
-	  }
-	
-	if (mparam.secondorder)
-	  {
-	    const_cast<Refinement&> (mesh->GetGeometry()->GetRefinement()).MakeSecondOrder (*mesh);
-	    mesh -> SetNextMajorTimeStamp();
-	  }
-
-	if (mparam.elementorder > 1)
-	  {
-	    mesh -> GetCurvedElements().BuildCurvedElements (&const_cast<Refinement&> (mesh->GetGeometry()->GetRefinement()),
-							     mparam.elementorder);
-
-	    mesh -> SetNextMajorTimeStamp();
-	  }
-
-
-	PrintMessage (1, "Meshing done, time = ", GetTime(), " sec");
+        if (res != MESHING3_OK) 
+        {
+          multithread.task = savetask;
+          multithread.running = 0;
+          return 0;
+        }
+      }
+      else if (mesh)
+      {
+        if(perfstepsstart > 1 && perfstepsstart < 5)
+          throw Exception("Need geometry for surface mesh operations!");
+        MeshVolume(mparam, *mesh);
+        OptimizeVolume(mparam, *mesh);
+        return 0;
+      }
+      else // no ng_geometry
+      {
+        multithread.task = savetask;
+        multithread.running = 0;
+        return 0;
       }
 
+      if (mparam.autozrefine)
+      {
+        ZRefinementOptions opt;
+        opt.minref = 5;
+        ZRefinement (*mesh, ng_geometry.get(), opt);
+        mesh -> SetNextMajorTimeStamp();
+      }
+      
+      if (mparam.secondorder)
+      {
+        const_cast<Refinement&> (mesh->GetGeometry()->GetRefinement()).MakeSecondOrder (*mesh);
+        mesh -> SetNextMajorTimeStamp();
+      }
+
+      if (mparam.elementorder > 1)
+      {
+        mesh -> GetCurvedElements().BuildCurvedElements (&const_cast<Refinement&> (mesh->GetGeometry()->GetRefinement()),
+        mparam.elementorder);
+        mesh -> SetNextMajorTimeStamp();
+      }
+
+      PrintMessage (1, "Meshing done, time = ", GetTime(), " sec");
+    }
     catch (NgException e)
-      {
-	cout << e.What() << endl;
-      }
+    {
+      cout << e.What() << endl;
+    }
 
     multithread.task = savetask;
     multithread.running = 0;
