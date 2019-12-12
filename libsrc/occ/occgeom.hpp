@@ -187,11 +187,11 @@ namespace netgen
   {
   public:
 
-    /// Factor for meshing close edges, moved to meshingparameters
-    // double resthcloseedgefac = 2.;
+    /// Factor for meshing close edges 
+    double resthcloseedgefac = 2.;
 
     /// Enable / Disable detection of close edges
-    // int resthcloseedgeenable = true;
+    int resthcloseedgeenable = true;
 
     /// Minimum edge length to be used for dividing edges to mesh points
     double resthminedgelen = 0.001;
@@ -280,11 +280,11 @@ namespace netgen
      
     void DoArchive(Archive& ar) override;
 
-    PointGeomInfo ProjectPoint(int surfind, Point<3> & p) const override;
-    void ProjectPointEdge (int surfind, int surfind2, Point<3> & p,
-                           EdgePointGeomInfo* gi = nullptr) const override;
+    void ProjectPoint(int surfind, Point<3> & p) const override;
+    void ProjectPointEdge (int surfind, int surfind2, Point<3> & p) const override;
     bool ProjectPointGI (int surfind, Point<3> & p, PointGeomInfo & gi) const override;
-    Vec<3> GetNormal(int surfind, const Point<3> & p, const PointGeomInfo* gi) const override;
+    Vec<3> GetNormal(int surfind, const Point<3> & p) const override;
+    Vec<3> GetNormal(int surfind, const Point<3> & p, const PointGeomInfo & gi) const override;
     bool CalcPointGeomInfo(int surfind, PointGeomInfo& gi, const Point<3> & p3) const override;
 
     void PointBetweenEdge(const Point<3> & p1, const Point<3> & p2, double secpoint,

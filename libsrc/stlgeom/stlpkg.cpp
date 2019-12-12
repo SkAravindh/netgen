@@ -78,6 +78,11 @@ namespace netgen
       stlparam.resthlinelengthenable =
 	atoi (Tcl_GetVar (interp, "::stloptions.resthlinelengthenable", 0));
 
+      stlparam.resthcloseedgefac =
+	atof (Tcl_GetVar (interp, "::stloptions.resthcloseedgefac", 0));
+      stlparam.resthcloseedgeenable =
+	atoi (Tcl_GetVar (interp, "::stloptions.resthcloseedgeenable", 0));
+
       stlparam.resthedgeanglefac =
 	atof (Tcl_GetVar (interp, "::stloptions.resthedgeanglefac", 0));
       stlparam.resthedgeangleenable =
@@ -533,7 +538,7 @@ namespace netgen
 	mesh -> SetLocalH (stlgeometry->GetBoundingBox().PMin() - Vec3d(10, 10, 10),
 			   stlgeometry->GetBoundingBox().PMax() + Vec3d(10, 10, 10),
 			   mparam.grading);
-	stlgeometry -> RestrictLocalH(*mesh, mparam.maxh, stlparam, mparam);
+	stlgeometry -> RestrictLocalH(*mesh, mparam.maxh, stlparam);
 
 	if (stlparam.resthsurfmeshcurvenable)
 	  mesh -> CalcLocalHFromSurfaceCurvature (mparam.grading, 

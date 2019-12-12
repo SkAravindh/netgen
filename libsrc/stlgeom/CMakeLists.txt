@@ -4,17 +4,18 @@ add_library(stl ${NG_LIB_TYPE}
         )
 
 if(NOT WIN32)
-    target_link_libraries( stl PUBLIC mesh )
+    target_link_libraries( stl PUBLIC mesh PRIVATE ${PYTHON_LIBRARIES})
     install( TARGETS stl ${NG_INSTALL_DIR})
 endif(NOT WIN32)
 
-target_link_libraries( stl PUBLIC ngcore PRIVATE netgen_python )
+target_link_libraries( stl PUBLIC ngcore )
 
 if(USE_GUI)
-    add_library(stlvis ${NG_LIB_TYPE} vsstl.cpp)
-    target_link_libraries(stlvis PRIVATE netgen_python PUBLIC ngcore)
+    add_library(stlvis ${NG_LIB_TYPE}
+            vsstl.cpp
+            )
     if(NOT WIN32)
-        target_link_libraries( stlvis PUBLIC stl )
+        target_link_libraries( stlvis stl )
         install( TARGETS stlvis ${NG_INSTALL_DIR})
     endif(NOT WIN32)
 endif(USE_GUI)

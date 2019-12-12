@@ -100,11 +100,14 @@ int STLGeometry :: GenerateMesh (shared_ptr<Mesh> & mesh, MeshingParameters & mp
   return STLMeshingDummy (this, mesh, mparam, stlpar);
 }
 
-Vec<3> STLGeometry :: GetNormal(int surfind, const Point<3> & p, const PointGeomInfo* gi) const
+Vec<3> STLGeometry :: GetNormal(INDEX surfind, const Point<3> & p) const
 {
-  if(!gi)
-    throw Exception("STLGeometry::GetNormal without PointGeomInfo called");
-  return GetChart(GetChartNr(gi->trignum)).GetNormal();
+  throw Exception("STLGeometry::GetNormal without PointGeomInfo called");
+}
+
+Vec<3> STLGeometry :: GetNormal(int surfind, const Point<3> & p, const PointGeomInfo & gi) const
+{
+  return GetChart(GetChartNr(gi.trignum)).GetNormal();
 }
 
 bool STLGeometry :: CalcPointGeomInfo(int /*surfind*/, PointGeomInfo& gi, const Point<3> & p3) const
@@ -141,7 +144,7 @@ bool STLGeometry :: ProjectPointGI (int surfind, Point<3> & p, PointGeomInfo & g
   return true;
 }
 
-PointGeomInfo STLGeometry :: ProjectPoint (INDEX surfind, Point<3> & p) const
+void STLGeometry :: ProjectPoint (INDEX surfind, Point<3> & p) const
 {
   throw Exception("ProjectPoint without PointGeomInfo not implemented");
 }

@@ -1019,8 +1019,9 @@ namespace netgen
 	// the mesh data structure, rather than limit it to the OCC geometry 
 	// structure... allows other geometry types to use face colours too
 
-        for (auto i : Range(3))
-            matcol[i] = mesh->GetFaceDescriptor(faceindex).SurfColour()[i];
+	matcol[0] = mesh->GetFaceDescriptor(faceindex).SurfColour().X();
+	matcol[1] = mesh->GetFaceDescriptor(faceindex).SurfColour().Y();
+	matcol[2] = mesh->GetFaceDescriptor(faceindex).SurfColour().Z();
 	matcol[3] = 1.0;
 
 	if (faceindex == selface)

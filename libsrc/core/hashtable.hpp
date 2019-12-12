@@ -582,28 +582,38 @@ namespace ngcore
     size_t size;
     size_t mask;
     ///
-    size_t used = 0;
+    size_t used;
     ///
     Array<T_HASH> hash;
     ///
     Array<T> cont;
     ///
-    T_HASH invalid = -1;
+    T_HASH invalid;
   public:
     ///
     ClosedHashTable (size_t asize = 128)
-      : size(RoundUp2(asize)), hash(size), cont(size)
+      : size(RoundUp2(asize)), used(0), hash(size), cont(size)
     {
       mask = size-1;
+      invalid = -1; 
       hash = T_HASH(invalid);
     }
 
     ClosedHashTable (ClosedHashTable && ht2) = default;
 
+      // who needs that ? 
+    ClosedHashTable (FlatArray<T_HASH> _hash, FlatArray<T> _cont)
+      : size(_hash.Size()), used(0), hash(_hash.Size(), _hash.Addr(0)), cont(_cont.Size(), _cont.Addr(0))
+    {
+      invalid = -1; 
+      hash = T_HASH(invalid);
+    }
+
     /// allocate on local heap
     ClosedHashTable (size_t asize, LocalHeap & lh)
-      : size(RoundUp2(asize)), mask(size-1), hash(size, lh), cont(size, lh)
+      : size(asize), hash(asize, lh), cont(asize, lh)
     {
+      invalid = -1; 
       hash = T_HASH(invalid);
     }
 

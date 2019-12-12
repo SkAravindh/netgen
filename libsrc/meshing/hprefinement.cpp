@@ -84,7 +84,7 @@ namespace netgen
   }
   
   HPRefElement :: HPRefElement(HPRefElement & el) :
-    np(el.np), levelx(el.levelx), levely(el.levely), levelz(el.levelz), type(el.type), domin(el.domin), domout(el.domout), index(el.index), si(el.si), coarse_elnr(el.coarse_elnr), singedge_left(el.singedge_left), singedge_right(el.singedge_right) 
+    np(el.np), levelx(el.levelx), levely(el.levely), levelz(el.levelz), type(el.type), domin(el.domin), domout(el.domout), index(el.index), coarse_elnr(el.coarse_elnr), singedge_left(el.singedge_left), singedge_right(el.singedge_right) 
     
   {
     //Reset();
@@ -600,15 +600,11 @@ namespace netgen
 	HPRefElement hpel(mesh[i]);
 	hpel.coarse_elnr = i; 
 	hpel.type = HP_SEGM; 
-	// hpel.index = seg.edgenr + 10000*seg.si;
-        hpel.index = seg.edgenr;
-        hpel.si = seg.si;
-        /*
+	hpel.index = seg.edgenr + 10000*seg.si; 
 	if(seg.edgenr >= 10000)
 	  {
 	    throw NgException("assumption that seg.edgenr < 10000 is wrong");
 	  }
-        */
 	elements.Append(hpel); 
       }
   }
@@ -929,7 +925,6 @@ namespace netgen
 	    for (int k = 0; k < 8; k++)
 	      newel.pnums[k] = newpnums[hprs->newels[j][k]-1];
 	    newel.index = el.index;
-            newel.si = el.si;
 	    newel.coarse_elnr = el.coarse_elnr;
 	    newel.levelx = newel.levely = newel.levelz = newlevel;
 
@@ -1366,10 +1361,8 @@ namespace netgen
 		    seg[0] = hpel.pnums[0];
 		    seg[1] = hpel.pnums[1];
 		    // NOTE: only for less than 10000 elements (HACK) !!!
-		    // seg.edgenr = hpel.index % 10000;
-		    // seg.si     = hpel.index / 10000;
-                    seg.edgenr = hpel.index;
-                    seg.si = hpel.si;
+		    seg.edgenr = hpel.index % 10000;
+		    seg.si     = hpel.index / 10000;
 
                     /*
                     seg.epgeominfo[0].dist = hpel.param[0][0]; // he: war hpel.param[0][0]
