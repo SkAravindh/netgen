@@ -88,7 +88,6 @@ namespace netgen
 
   Mesh & Mesh :: operator= (const Mesh & mesh2)
   {
-    geometry = mesh2.geometry;
     dimension = mesh2.dimension;
     points = mesh2.points;
     segments = mesh2.segments;
@@ -819,11 +818,11 @@ namespace netgen
           outfile.width(8);
           outfile << GetFaceDescriptor(i).SurfNr()+1 << " ";
           outfile.width(12);
-          outfile << GetFaceDescriptor(i).SurfColour()[0] << " ";
+          outfile << GetFaceDescriptor(i).SurfColour().X() << " ";
           outfile.width(12);
-          outfile << GetFaceDescriptor(i).SurfColour()[1] << " ";
+          outfile << GetFaceDescriptor(i).SurfColour().Y() << " ";
           outfile.width(12);
-          outfile << GetFaceDescriptor(i).SurfColour()[2];
+          outfile << GetFaceDescriptor(i).SurfColour().Z();
           outfile << endl;
        }
     }

@@ -646,8 +646,6 @@ namespace netgen
   {
     static Timer t("OptimizeVolume"); RegionTimer reg(t);
     RegionTaskManager rtm(mp.parallel_meshing ? mp.nthreads : 0);
-    const char* savetask = multithread.task;
-    multithread.task = "Optimize Volume";
     
     int i;
 
@@ -665,7 +663,7 @@ namespace netgen
     */
 
     mesh3d.CalcSurfacesOfNode();
-    for (auto i : Range(mp.optsteps3d))
+    for (i = 1; i <= mp.optsteps3d; i++)
       {
 	if (multithread.terminate)
 	  break;
@@ -674,13 +672,12 @@ namespace netgen
 
 	// teterrpow = mp.opterrpow;
 	// for (size_t j = 1; j <= strlen(mp.optimize3d); j++)
-        for (auto j : Range(mp.optimize3d.size()))
+        for (size_t j = 1; j <= mp.optimize3d.length(); j++)
 	  {
-            multithread.percent = 100.* (double(j)/mp.optimize3d.size() + i)/mp.optsteps3d;
 	    if (multithread.terminate)
 	      break;
 
-	    switch (mp.optimize3d[j])
+	    switch (mp.optimize3d[j-1])
 	      {
 	      case 'c': optmesh.CombineImprove(mesh3d, OPT_REST); break;
 	      case 'd': optmesh.SplitImprove(mesh3d); break;
@@ -701,7 +698,6 @@ namespace netgen
 	MeshQuality3d (mesh3d);
       }
   
-    multithread.task = savetask;
     return MESHING3_OK;
   }
 

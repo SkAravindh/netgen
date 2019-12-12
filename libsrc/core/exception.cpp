@@ -1,28 +1,6 @@
 #include "exception.hpp"
 #include "utils.hpp"
 
-namespace ngcore
-{
-  Exception :: Exception(const std::string& s)
-    : m_what(s) {}
-  
-  Exception :: Exception(const char* s)
-    : m_what(s) {}
-
-
-  void ThrowException(const std::string & s)
-  {
-    throw Exception (s);
-  }
-  
-  void ThrowException(const char * s)
-  {
-    throw Exception (s);
-  }
-} // namespace ngcore
-
-
-// ********* STUFF FOR GETBACKTRACE ***************************
 #ifdef __GNUC__
 
 #include <execinfo.h>
@@ -166,8 +144,6 @@ namespace ngcore
 
   std::string GetBackTrace()
   {
-    if(!getenv("NG_BACKTRACE"))
-        return "";
     std::cerr << "Collecting backtrace..." << std::endl;
     std::stringstream result;
     void *bt[100];

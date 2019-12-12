@@ -19,7 +19,6 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include <optional>
 
 #include <new>
 #include <string>

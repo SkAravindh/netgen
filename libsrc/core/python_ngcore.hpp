@@ -215,7 +215,7 @@ namespace ngcore
     }
 
   template<typename ARCHIVE>
-  class NGCORE_API_EXPORT PyArchive : public ARCHIVE
+  class PyArchive : public ARCHIVE
   {
   private:
     pybind11::list lst;
