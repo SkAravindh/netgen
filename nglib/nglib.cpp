@@ -1175,11 +1175,6 @@ namespace nglib
       mparam.badellimit = badellimit;
       mparam.elementorder = element_order;
       mparam.autozrefine = auto_z_refine_enable;
-
-      if(closeedgeenable)
-         mparam.closeedgefac = closeedgefact;
-      else
-         mparam.closeedgefac = nullopt;
       
       stlparam.yangle = yangle;
       stlparam.edgecornerangle = edgecornerangle;
@@ -1189,6 +1184,8 @@ namespace nglib
       stlparam.resthsurfcurvenable = surfcurvenable;
       stlparam.resthchartdistfac = chartdistfact;
       stlparam.resthchartdistenable = chartdistenable;
+      stlparam.resthcloseedgefac = closeedgefact;
+      stlparam.resthcloseedgeenable = closeedgeenable;
       stlparam.resthedgeanglefac = edgeanglefact;
       stlparam.resthedgeangleenable = edgeangleenable;
       stlparam.resthlinelengthfac = linelengthfact;

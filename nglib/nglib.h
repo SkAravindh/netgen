@@ -178,8 +178,8 @@ public:
       - #grading: 0.3
       - #elementsperedge: 2.0
       - #elementspercurve: 2.0
-      - #closeedgeenable: 0
-      - #closeedgefact: 2.0
+      - #closeedgeenable: 1
+      - #closeedgefact: 1.0
       - #secondorder: 0
       - #meshsize_filename: null
       - #quad_dominated: 0
