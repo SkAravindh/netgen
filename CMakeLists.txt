@@ -13,9 +13,11 @@ if(NOT WIN32)
     option( USE_NATIVE_ARCH  "build which -march=native" ON)
 endif(NOT WIN32)
 
-option( USE_GUI     "don't build netgen with GUI" ON )
+# Nikhil - 13/12/2019
+# Modified the default options for required purpose
+option( USE_GUI     "don't build netgen with GUI" OFF )
 option( USE_PYTHON  "build with python interface" ON )
-option( USE_MPI     "enable mpi parallelization" OFF )
+option( USE_MPI     "enable mpi parallelization" ON )
 option( USE_OCC     "(not supported) compile with OpenCascade geometry kernel" OFF)
 option( USE_JPEG    "enable snapshots using library libjpeg" OFF )
 option( USE_MPEG    "enable video recording with FFmpeg, uses libavcodec" OFF )
