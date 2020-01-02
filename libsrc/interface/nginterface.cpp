@@ -73,22 +73,19 @@ void Ng_LoadGeometry (const char * filename)
 {
   // he: if filename is empty, return
   // can be used to reset geometry
-  if (!filename || strcmp(filename,"")==0) 
-    {
-      ng_geometry.reset (new NetgenGeometry());
-      return;
-    }
+  if (!filename || strcmp(filename,"")==0) {
+    ng_geometry.reset (new NetgenGeometry());
+     return;
+  }
 
-  for (int i = 0; i < geometryregister.Size(); i++)
-    {
-      NetgenGeometry * hgeom = geometryregister[i]->Load (filename);
-      if (hgeom)
-	{
-          ng_geometry.reset (hgeom);
-	  mesh.reset();
-	  return;
-	}
-    }
+  for (int i = 0; i < geometryregister.Size(); i++) {
+    NetgenGeometry * hgeom = geometryregister[i]->Load (filename);
+    if (hgeom) {
+      ng_geometry.reset (hgeom);
+	    mesh.reset();
+	    return;
+	  }
+  }
 
 
   // if (id == 0)
