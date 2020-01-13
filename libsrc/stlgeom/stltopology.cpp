@@ -349,11 +349,11 @@ STLGeometry *  STLTopology ::Load (istream & ist)
     // ignore whitespaces at start of line
     int istart;
     for (istart=0; istart<buflen-5; istart++)
-      if(std::isblank(buf[istart])==0)
-        break;
+       if(std::isblank(buf[istart])==0)
+            break;
 
     for (auto i : Range(buflen))
-      ist.unget();
+        ist.unget();
 
     // does not start with "solid" -> binary file
     if (strncmp(buf+istart, "solid", 5) != 0)
@@ -361,8 +361,8 @@ STLGeometry *  STLTopology ::Load (istream & ist)
 
     // Check if there is a non-printable character in first 80 bytes
     for (auto i : Range(istart, buflen))
-      if(std::isprint(buf[i])==0 && std::isspace(buf[i])==0)
-        return LoadBinary(ist);
+       if(std::isprint(buf[i])==0 && std::isspace(buf[i])==0)
+           return LoadBinary(ist);
   }
 
   STLGeometry * geom = new STLGeometry();
@@ -378,67 +378,83 @@ STLGeometry *  STLTopology ::Load (istream & ist)
   bool badnormals = false;
   ist >> buf; // skip first line
   
-  while (ist.good()) {
-    ist >> buf;
+  while (ist.good())
+    {
+      ist >> buf;
 
-    int n = strlen (buf);
-    for (int i = 0; i < n; i++)
-	  buf[i] = tolower (buf[i]);
+      int n = strlen (buf);
+      for (int i = 0; i < n; i++)
+	buf[i] = tolower (buf[i]);
 
-    if (strcmp (buf, "facet") == 0) {
-	    cntface++;
-	  }
+      if (strcmp (buf, "facet") == 0)
+	{
+	  cntface++;
+	}
 
-    if (strcmp (buf, "normal") == 0) {
-	    ist >> normal(0)
-	        >> normal(1)
-	        >> normal(2);
-	    normal.Normalize();
-	  }
+      if (strcmp (buf, "normal") == 0)
+	{
+	  ist >> normal(0)
+	      >> normal(1)
+	      >> normal(2);
+	  normal.Normalize();
+	}
 
-    if (strcmp (buf, "vertex") == 0) {
-	    ist >> pts[vertex](0)
-	        >> pts[vertex](1)
-	        >> pts[vertex](2);
+      if (strcmp (buf, "vertex") == 0)
+	{
+	  ist >> pts[vertex](0)
+	      >> pts[vertex](1)
+	      >> pts[vertex](2);
 
-	    vertex++;
+	  vertex++;
 
-	    if (vertex == 3) {
-	      if (normal.Length() <= 1e-5) {
-		      normal = Cross (pts[1]-pts[0], pts[2]-pts[0]);
-		      normal.Normalize();
-		    } else {
-		      Vec<3> hnormal = Cross (pts[1]-pts[0], pts[2]-pts[0]);
-		      hnormal.Normalize();
+	  if (vertex == 3)
+	    {
+	      if (normal.Length() <= 1e-5)
 
-		      if (normal * hnormal < 0.5)
-		        badnormals = true;
-		    }
+		{
+		  normal = Cross (pts[1]-pts[0], pts[2]-pts[0]);
+		  normal.Normalize();
+		}
+
+	      else
+
+		{
+		  Vec<3> hnormal = Cross (pts[1]-pts[0], pts[2]-pts[0]);
+		  hnormal.Normalize();
+
+		  if (normal * hnormal < 0.5)
+		    badnormals = true;
+		}
 
 	      vertex = 0;
 
-	      if ((Dist2 (pts[0], pts[1]) > 1e-16) 
-            && (Dist2 (pts[0], pts[2]) > 1e-16) 
-            && (Dist2 (pts[1], pts[2]) > 1e-16)) {
-          readtrigs.Append (STLReadTriangle (pts, normal));
+	      if ( (Dist2 (pts[0], pts[1]) > 1e-16) &&
+		   (Dist2 (pts[0], pts[2]) > 1e-16) &&
+		   (Dist2 (pts[1], pts[2]) > 1e-16) )
+		
+		{
+                  readtrigs.Append (STLReadTriangle (pts, normal));
 
-		      if (readtrigs.Size() % 100000 == 0)
-		        PrintMessageCR (3, readtrigs.Size(), " triangles loaded\r");
-		    } else {
-          cout << "Skipping flat triangle " 
-                << "l1 = " << Dist(pts[0], pts[1])
-                << ", l2 = " << Dist(pts[0], pts[2])
-                << ", l3 = " << Dist(pts[2], pts[1]) << endl;
-        }
+		  if (readtrigs.Size() % 100000 == 0)
+		    PrintMessageCR (3, readtrigs.Size(), " triangles loaded\r");
+		}
+              else
+                {
+                  cout << "Skipping flat triangle " 
+                       << "l1 = " << Dist(pts[0], pts[1])
+                       << ", l2 = " << Dist(pts[0], pts[2])
+                       << ", l3 = " << Dist(pts[2], pts[1]) << endl;
+                }
+
 	    }
-	  }
-  }
-  
+	}
+    }
   PrintMessage (3, readtrigs.Size(), " triangles loaded");
 
-  if (badnormals) {
-    PrintWarning("File has normal vectors which differ extremely from geometry->correct with stldoctor!!!");
-  }
+  if (badnormals) 
+    {
+      PrintWarning("File has normal vectors which differ extremely from geometry->correct with stldoctor!!!");
+    }
 
   geom->InitSTLGeometry(readtrigs);
   return geom;

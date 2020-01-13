@@ -511,10 +511,10 @@ namespace netgen
 		       int argc, tcl_const char *argv[])
   {
     if (multithread.running)
-    {
-      Tcl_SetResult (interp, err_jobrunning, TCL_STATIC);
-      return TCL_ERROR;
-    }
+      {
+	Tcl_SetResult (interp, err_jobrunning, TCL_STATIC);
+	return TCL_ERROR;
+      }
 
     tcl_const char * lgfilename = argv[1];
 
@@ -527,67 +527,94 @@ namespace netgen
 #endif
 
 
-    try {
-	    for (int i = 0; i < geometryregister.Size(); i++) {
-	      NetgenGeometry * hgeom = geometryregister[i]->Load (lgfilename);
-	      if (hgeom) {
-          ng_geometry = shared_ptr<NetgenGeometry> (hgeom);
-          geometryregister[i]->SetParameters(interp);
+    try
+      {
+	for (int i = 0; i < geometryregister.Size(); i++)
+	  {
+	    NetgenGeometry * hgeom = geometryregister[i]->Load (lgfilename);
+	    if (hgeom)
+	      {
+                // delete ng_geometry;
+		// ng_geometry = hgeom;
+                ng_geometry = shared_ptr<NetgenGeometry> (hgeom);
+                geometryregister[i]->SetParameters(interp);
 		
-		      mesh.reset();
-		      return TCL_OK;
+		mesh.reset();
+		return TCL_OK;
 	      }
-	    }
+	  }
 
-	    ifstream infile(lgfilename);
 
-	    if (strlen(lgfilename) < 4) {
-	      cout << "ERROR: cannot recognise file format!" << endl;
-	    } else {
-	      if ((strcmp (&lgfilename[strlen(lgfilename)-4], "iges") == 0) ||
-		        (strcmp (&lgfilename[strlen(lgfilename)-3], "igs") == 0) ||
-		        (strcmp (&lgfilename[strlen(lgfilename)-3], "IGS") == 0) ||
-		        (strcmp (&lgfilename[strlen(lgfilename)-4], "IGES") == 0)) {
-		      Tcl_SetResult (interp, (char*)"IGES import requires the OpenCascade geometry kernel. "
-			                                  "Please install OpenCascade as described in the Netgen-website",
-			                   TCL_STATIC);
-		      return TCL_ERROR;
-	      } else if (strcmp (&lgfilename[strlen(lgfilename)-3], "sat") == 0) {
+	ifstream infile(lgfilename);
+
+	if (strlen(lgfilename) < 4)
+	  {
+	    cout << "ERROR: cannot recognise file format!" << endl;
+	  }
+	else
+	  {
+	    if ((strcmp (&lgfilename[strlen(lgfilename)-4], "iges") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-3], "igs") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-3], "IGS") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-4], "IGES") == 0))
+	      {
+		Tcl_SetResult (interp, (char*)"IGES import requires the OpenCascade geometry kernel. "
+			       "Please install OpenCascade as described in the Netgen-website",
+			       TCL_STATIC);
+		return TCL_ERROR;
+	      }
+
+	    else if (strcmp (&lgfilename[strlen(lgfilename)-3], "sat") == 0)
+	      {
 #ifdef ACIS
-		      PrintMessage (1, "Load ACIS geometry file ", lgfilename);
-		      acisgeometry = netgen::LoadACIS_SAT (lgfilename);
+		PrintMessage (1, "Load ACIS geometry file ", lgfilename);
+		acisgeometry = netgen::LoadACIS_SAT (lgfilename);
 #endif
-	      } else if ((strcmp (&lgfilename[strlen(lgfilename)-4], "step") == 0) ||
-		               (strcmp (&lgfilename[strlen(lgfilename)-3], "stp") == 0) ||
-		               (strcmp (&lgfilename[strlen(lgfilename)-3], "STP") == 0) ||
-		               (strcmp (&lgfilename[strlen(lgfilename)-4], "STEP") == 0)) {
-#ifdef ACISxxx
-		      PrintMessage (1, "Load STEP geometry file ", lgfilename);
-		      acisgeometry = netgen::LoadACIS_STEP (lgfilename);
-#else
-		      Tcl_SetResult (interp, (char*)"IGES import requires the OpenCascade geometry kernel. "
-			                                  "Please install OpenCascade as described in the Netgen-website",
-			                   TCL_STATIC);
-		      return TCL_ERROR;
-#endif
-	      } else if ((strcmp (&lgfilename[strlen(lgfilename)-4], "brep") == 0) ||
-		               (strcmp (&lgfilename[strlen(lgfilename)-4], "Brep") == 0) ||
-		               (strcmp (&lgfilename[strlen(lgfilename)-4], "BREP") == 0)) {
-		      Tcl_SetResult (interp, (char*)"BREP import requires the OpenCascade geometry kernel. "
-			                                  "Please install OpenCascade as described in the Netgen-website",
-			                   TCL_STATIC);
-		      return TCL_ERROR;
 	      }
-	    }
-    }
-    catch (NgException e) {
-	    Tcl_SetResult (interp, const_cast<char*> (e.What().c_str()), TCL_VOLATILE);
-	    return TCL_ERROR;
-    }
+	    else if ((strcmp (&lgfilename[strlen(lgfilename)-4], "step") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-3], "stp") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-3], "STP") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-4], "STEP") == 0))
+	      {
+#ifdef ACISxxx
+		PrintMessage (1, "Load STEP geometry file ", lgfilename);
+		acisgeometry = netgen::LoadACIS_STEP (lgfilename);
+#else
+		Tcl_SetResult (interp, (char*)"IGES import requires the OpenCascade geometry kernel. "
+			       "Please install OpenCascade as described in the Netgen-website",
+			       TCL_STATIC);
+		return TCL_ERROR;
+#endif
+	      }
+	    else if ((strcmp (&lgfilename[strlen(lgfilename)-4], "brep") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-4], "Brep") == 0) ||
+		     (strcmp (&lgfilename[strlen(lgfilename)-4], "BREP") == 0))
+	      {
+		Tcl_SetResult (interp, (char*)"BREP import requires the OpenCascade geometry kernel. "
+			       "Please install OpenCascade as described in the Netgen-website",
+			       TCL_STATIC);
+		return TCL_ERROR;
+	      }
+	  }
+      }
+
+    catch (NgException e)
+      {
+	Tcl_SetResult (interp, const_cast<char*> (e.What().c_str()), TCL_VOLATILE);
+	return TCL_ERROR;
+      }
 
     mesh.reset();
     return TCL_OK;
   }
+
+
+
+
+
+
+
+
 
 
   int Ng_SaveGeometry (ClientData clientData,

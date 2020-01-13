@@ -857,10 +857,11 @@ namespace netgen
 
   void Mesh :: Load (istream & infile)
   {
-    if (!(infile.good())) {
-      cout << "cannot load mesh" << endl;
-      throw NgException ("mesh file not found");
-    }
+    if (! (infile.good()) )
+      {
+        cout << "cannot load mesh" << endl;
+        throw NgException ("mesh file not found");
+      }
 
     int rank = GetCommunicator().Rank();
     int ntasks = GetCommunicator().Size();
@@ -872,372 +873,420 @@ namespace netgen
     int inverttets = 0;  // globflags.GetDefineFlag ("inverttets");
     int invertsurf = 0;  // globflags.GetDefineFlag ("invertsurfacemesh");
 
+
     facedecoding.SetSize(0);
 
     bool endmesh = false;
     
-    while (infile.good() && !endmesh) {
-      infile >> str;
-      if (strcmp (str, "dimension") == 0) {
-        infile >> dimension;
-      }
 
-      if (strcmp (str, "geomtype") == 0) {
-        int hi;
-        infile >> hi;
-        geomtype = GEOM_TYPE(hi);
-      }
-
-      if (strcmp (str, "surfaceelements") == 0 
-          || strcmp (str, "surfaceelementsgi")== 0 
-          || strcmp (str, "surfaceelementsuv") == 0) {
-        infile >> n;
-        PrintMessage (3, n, " surface elements");
-
-	      bool geominfo = strcmp (str, "surfaceelementsgi") == 0;
-	      bool uv = strcmp (str, "surfaceelementsuv") == 0;
-
-
-        for (i = 1; i <= n; i++) {
-          int surfnr, bcp, domin, domout, nep, faceind = 0;
-          infile >> surfnr >> bcp >> domin >> domout;
-          surfnr--;
-
-		      bool invert_el = false;
-
-          for (int j = 1; j <= facedecoding.Size(); j++) {
-            if (GetFaceDescriptor(j).SurfNr() == surfnr &&
-                GetFaceDescriptor(j).BCProperty() == bcp &&
-                GetFaceDescriptor(j).DomainIn() == domin &&
-                GetFaceDescriptor(j).DomainOut() == domout) {
-              faceind = j;
-            }
+    while (infile.good() && !endmesh)
+      {
+        infile >> str;
+        if (strcmp (str, "dimension") == 0)
+          {
+            infile >> dimension;
           }
 
-          if (!faceind) {
-            faceind = AddFaceDescriptor (FaceDescriptor(surfnr, domin, domout, 0));
-            GetFaceDescriptor(faceind).SetBCProperty (bcp);
+        if (strcmp (str, "geomtype") == 0)
+          {
+            int hi;
+            infile >> hi;
+            geomtype = GEOM_TYPE(hi);
           }
 
-          infile >> nep;
-          if (!nep) {
-            nep = 3; 
-          }
 
-          Element2d tri(nep);
-          tri.SetIndex(faceind);
+        if (strcmp (str, "surfaceelements") == 0 || strcmp (str, "surfaceelementsgi")==0 || strcmp (str, "surfaceelementsuv") == 0)
+          {
+            infile >> n;
+            PrintMessage (3, n, " surface elements");
 
-          for (int j = 1; j <= nep; j++) {
-            infile >> tri.PNum(j);
-          }
-
-          if (geominfo) {
-            for (int j = 1; j <= nep; j++) {
-              infile >> tri.GeomInfoPi(j).trignum;
-            }
-          }
-
-          if (uv) {
-            for (int j = 1; j <= nep; j++) {
-              infile >> tri.GeomInfoPi(j).u >> tri.GeomInfoPi(j).v;
-            }
-          }
-
-          if (invertsurf) {
-            tri.Invert();
-          }
-
-		      if (invert_el) { 
-            tri.Invert();
-          }
-
-		      AddSurfaceElement (tri);
-        }
-      }
-
-      if (strcmp (str, "volumeelements") == 0) {
-          infile >> n;
-          PrintMessage (3, n, " volume elements");
-          for (i = 1; i <= n; i++) {
-              Element el(TET);
-              int hi, nep;
-              infile >> hi;
-              if (hi == 0) {
-                hi = 1;
-              }
-              el.SetIndex(hi);
-              infile >> nep;
-              el.SetNP(nep);
-              el.SetCurved (nep != 4);
-              for (int j = 0; j < nep; j++) {
-                infile >> (int&)(el[j]);
-              }
-
-              if (inverttets) {
-                el.Invert();
-              }
-
-          AddVolumeElement (el);
-        }
-      }
+	    bool geominfo = strcmp (str, "surfaceelementsgi") == 0;
+	    bool uv = strcmp (str, "surfaceelementsuv") == 0;
 
 
-      if (strcmp (str, "edgesegments") == 0) {
-        infile >> n;
-        for (i = 1; i <= n; i++) {
-          Segment seg;
-          int hi;
-          infile >> seg.si >> hi >> seg[0] >> seg[1];
-          AddSegment (seg);
-        }
-      }
+            for (i = 1; i <= n; i++)
+              {
+                int surfnr, bcp, domin, domout, nep, faceind = 0;
 
+                infile >> surfnr >> bcp >> domin >> domout;
+                surfnr--;
 
-
-      if (strcmp (str, "edgesegmentsgi") == 0) {
-        infile >> n;
-        for (i = 1; i <= n; i++) {
-          Segment seg;
-          int hi;
-          infile >> seg.si >> hi >> seg[0] >> seg[1]
-                  >> seg.geominfo[0].trignum
-                  >> seg.geominfo[1].trignum;
-          AddSegment (seg);
-        }
-      }
-
-      if (strcmp (str, "edgesegmentsgi2") == 0) {
-        int a; 
-        infile >> a;
-        n=a; 
-
-        PrintMessage (3, n, " curve elements");
-
-        for (i = 1; i <= n; i++) {
-          Segment seg;
-          int hi;
-          infile >> seg.si >> hi >> seg[0] >> seg[1]
-                  >> seg.geominfo[0].trignum
-                  >> seg.geominfo[1].trignum
-                  >> seg.surfnr1 >> seg.surfnr2
-                  >> seg.edgenr
-                  >> seg.epgeominfo[0].dist
-                  >> seg.epgeominfo[1].edgenr
-                  >> seg.epgeominfo[1].dist;
-
-          seg.epgeominfo[0].edgenr = seg.epgeominfo[1].edgenr;
-
-          seg.domin = seg.surfnr1;
-          seg.domout = seg.surfnr2;
-
-          seg.surfnr1--;
-          seg.surfnr2--;
-
-          AddSegment (seg);
-        }
-      }
-
-      if (strcmp (str, "points") == 0) {
-        infile >> n;
-        PrintMessage (3, n, " points");
-        for (i = 1; i <= n; i++) {
-          Point3d p;
-          infile >> p.X() >> p.Y() >> p.Z();
-          p.X() *= scale;
-          p.Y() *= scale;
-          p.Z() *= scale;
-          AddPoint (p);
-        }
-        PrintMessage (3, n, " points done");
-      }
-
-      if (strcmp (str, "identifications") == 0) {
-        infile >> n;
-        PrintMessage (3, n, " identifications");
-        for (i = 1; i <= n; i++) {
-          PointIndex pi1, pi2;
-          int ind;
-          infile >> pi1 >> pi2 >> ind;
-          ident -> Add (pi1, pi2, ind);
-        }
-      }
-
-      if (strcmp (str, "identificationtypes") == 0) {
-        infile >> n;
-        PrintMessage (3, n, " identificationtypes");
-        for (i = 1; i <= n; i++) {
-          int type;
-          infile >> type;
-          ident -> SetType(i,Identifications::ID_TYPE(type));
-        }
-      }
-
-      if (strcmp (str, "materials") == 0) {
-        infile >> n;
-        for (i = 1; i <= n; i++) {
-          int nr;
-          string mat;
-          infile >> nr >> mat;
-          SetMaterial (nr, mat.c_str());
-        }
-      }
-
-      if ( strcmp (str, "bcnames" ) == 0 ) {
-        infile >> n;
-        NgArray<int,0> bcnrs(n);
-        SetNBCNames(n);
-        for ( i = 1; i <= n; i++ ) {
-          string nextbcname;
-          infile >> bcnrs[i-1] >> nextbcname;
-          bcnames[bcnrs[i-1]-1] = new string(nextbcname);
-        }
-
-        if ( GetDimension() == 2 ) {
-          for (i = 1; i <= GetNSeg(); i++) {
-            Segment & seg = LineSegment (i);
-            if ( seg.si <= n ) {
-              seg.SetBCName (bcnames[seg.si-1]);
-            } else {
-              seg.SetBCName(0);
-            }
-          }
-        } else {
-          for (SurfaceElementIndex sei = 0; sei < GetNSE(); sei++) {
-            if ((*this)[sei].GetIndex()) {
-            int bcp = GetFaceDescriptor((*this)[sei].GetIndex ()).BCProperty();
-              if ( bcp <= n ) {
-                GetFaceDescriptor((*this)[sei].GetIndex ()).SetBCName(bcnames[bcp-1]);
-              } else {
-                GetFaceDescriptor((*this)[sei].GetIndex ()).SetBCName(0);
-              }
-            }
-          }
-        }
-      }
-
-	if ( strcmp (str, "cd2names" ) == 0) {
-    infile >> n;
-    NgArray<int,0> cd2nrs(n);
-    SetNCD2Names(n);
-    for( i=1; i<=n; i++) {
-      string nextcd2name;
-      infile >> cd2nrs[i-1] >> nextcd2name;
-      cd2names[cd2nrs[i-1]-1] = new string(nextcd2name);
-    }
-    if (GetDimension() == 2) {
-		  throw NgException("co dim 2 elements not implemented for dimension 2");
-	  } else {
-		  for (i = 1; i<= GetNSeg(); i++) {
-		    Segment & seg = LineSegment(i);
-		    if ( seg.edgenr <= n ) {
-		      seg.SetBCName (cd2names[seg.edgenr-1]);
-        } else {
-		      seg.SetBCName(0);
-        }
+		bool invert_el = false;
+		/*
+		if (domin == 0) 
+		  {
+		    invert_el = true;
+		    Swap (domin, domout);
 		  }
-    }
-  }
+		*/
+		
+                for (int j = 1; j <= facedecoding.Size(); j++)
+                  if (GetFaceDescriptor(j).SurfNr() == surfnr &&
+                      GetFaceDescriptor(j).BCProperty() == bcp &&
+                      GetFaceDescriptor(j).DomainIn() == domin &&
+                      GetFaceDescriptor(j).DomainOut() == domout)
+                    faceind = j;
 
-  if (strcmp (str, "singular_points") == 0) {
-    infile >> n;
-    for (i = 1; i <= n; i++) {
-      PointIndex pi;
-      double s; 
-      infile >> pi;
-      infile >> s; 
-      (*this)[pi].Singularity (s);
-    }
-  }
+		// if (facedecoding.Size()) faceind = 1;   // for timing 
 
-  if (strcmp (str, "singular_edge_left") == 0) {
-    infile >> n;
-    for (i = 1; i <= n; i++) {
-      SegmentIndex si;
-      double s; 
-      infile >> si;
-      infile >> s; 
-      (*this)[si].singedge_left = s;
-    }
-  }
-  
-  if (strcmp (str, "singular_edge_right") == 0) {
-    infile >> n;
-    for (i = 1; i <= n; i++) {
-      SegmentIndex si;
-      double s; 
-      infile >> si;
-      infile >> s; 
-      (*this)[si].singedge_right = s;
-    }
-  }
+                if (!faceind)
+                  {
+                    faceind = AddFaceDescriptor (FaceDescriptor(surfnr, domin, domout, 0));
+                    GetFaceDescriptor(faceind).SetBCProperty (bcp);
+                  }
 
-  if (strcmp (str, "singular_face_inside") == 0) {
-    infile >> n;
-    for (i = 1; i <= n; i++) {
-      SurfaceElementIndex sei;
-      double s; 
-      infile >> sei;
-      infile >> s; 
-      GetFaceDescriptor((*this)[sei].GetIndex()).domin_singular = s;
-    }
-  }
+                infile >> nep;
+                if (!nep) nep = 3;
 
-    if (strcmp (str, "singular_face_outside") == 0) {
-      infile >> n;
-      for (i = 1; i <= n; i++) {
-        SurfaceElementIndex sei;
-        double s; 
-        infile >> sei;
-        infile >> s; 
-        GetFaceDescriptor((*this)[sei].GetIndex()).domout_singular = s;
-      }
-    }
+                Element2d tri(nep);
+                tri.SetIndex(faceind);
 
-      // Philippose - 09/07/2009
-      // Add mesh face colours to Netgen Vol file format
-      // The colours are read in as RGB triplets
-      if (strcmp (str, "face_colours") == 0) {
-        int cnt_facedesc = GetNFD();
-        infile >> n;
-        if(n == cnt_facedesc) {
-          for(i = 1; i <= n; i++) {
-            int surfnr = 0;
-            Vec3d surfcolour(0.0,1.0,0.0);
+                for (int j = 1; j <= nep; j++)
+                  infile >> tri.PNum(j);
 
-            infile >> surfnr 
-                  >> surfcolour.X() 
-                  >> surfcolour.Y() 
-                  >> surfcolour.Z();
+                if (geominfo)
+                  for (int j = 1; j <= nep; j++)
+                    infile >> tri.GeomInfoPi(j).trignum;
 
-            surfnr--;
+                if (uv)
+                  for (int j = 1; j <= nep; j++)
+                    infile >> tri.GeomInfoPi(j).u >> tri.GeomInfoPi(j).v;
+		
+                if (invertsurf) tri.Invert();
+		if (invert_el) tri.Invert();
 
-            if(surfnr > 0) {
-              for(int facedesc = 1; facedesc <= cnt_facedesc; facedesc++) {
-                if(surfnr == GetFaceDescriptor(facedesc).SurfNr()) {
-                  GetFaceDescriptor(facedesc).SetSurfColour(surfcolour);
-                }
+		AddSurfaceElement (tri);
               }
-            }
           }
+
+        if (strcmp (str, "volumeelements") == 0)
+          {
+            infile >> n;
+            PrintMessage (3, n, " volume elements");
+            for (i = 1; i <= n; i++)
+              {
+                Element el(TET);
+                int hi, nep;
+                infile >> hi;
+                if (hi == 0) hi = 1;
+                el.SetIndex(hi);
+                infile >> nep;
+                el.SetNP(nep);
+                el.SetCurved (nep != 4);
+                for (int j = 0; j < nep; j++)
+                  infile >> (int&)(el[j]);
+
+                if (inverttets)
+                  el.Invert();
+
+		AddVolumeElement (el);
+              }
+          }
+
+
+        if (strcmp (str, "edgesegments") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                Segment seg;
+                int hi;
+                infile >> seg.si >> hi >> seg[0] >> seg[1];
+                AddSegment (seg);
+              }
+          }
+
+
+
+        if (strcmp (str, "edgesegmentsgi") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                Segment seg;
+                int hi;
+                infile >> seg.si >> hi >> seg[0] >> seg[1]
+                       >> seg.geominfo[0].trignum
+                       >> seg.geominfo[1].trignum;
+                AddSegment (seg);
+              }
+          }
+
+        if (strcmp (str, "edgesegmentsgi2") == 0)
+          {
+            int a; 
+            infile >> a;
+            n=a; 
+
+            PrintMessage (3, n, " curve elements");
+
+            for (i = 1; i <= n; i++)
+              {
+                Segment seg;
+                int hi;
+                infile >> seg.si >> hi >> seg[0] >> seg[1]
+                       >> seg.geominfo[0].trignum
+                       >> seg.geominfo[1].trignum
+                       >> seg.surfnr1 >> seg.surfnr2
+                       >> seg.edgenr
+                       >> seg.epgeominfo[0].dist
+                       >> seg.epgeominfo[1].edgenr
+                       >> seg.epgeominfo[1].dist;
+
+                seg.epgeominfo[0].edgenr = seg.epgeominfo[1].edgenr;
+
+                seg.domin = seg.surfnr1;
+                seg.domout = seg.surfnr2;
+
+                seg.surfnr1--;
+                seg.surfnr2--;
+
+                AddSegment (seg);
+              }
+          }
+
+        if (strcmp (str, "points") == 0)
+          {
+            infile >> n;
+            PrintMessage (3, n, " points");
+            for (i = 1; i <= n; i++)
+              {
+                Point3d p;
+                infile >> p.X() >> p.Y() >> p.Z();
+                p.X() *= scale;
+                p.Y() *= scale;
+                p.Z() *= scale;
+                AddPoint (p);
+              }
+	    PrintMessage (3, n, " points done");
+          }
+
+        if (strcmp (str, "identifications") == 0)
+          {
+            infile >> n;
+            PrintMessage (3, n, " identifications");
+            for (i = 1; i <= n; i++)
+              {
+                PointIndex pi1, pi2;
+                int ind;
+                infile >> pi1 >> pi2 >> ind;
+                ident -> Add (pi1, pi2, ind);
+              }
+          }
+
+        if (strcmp (str, "identificationtypes") == 0)
+          {
+            infile >> n;
+            PrintMessage (3, n, " identificationtypes");
+            for (i = 1; i <= n; i++)
+              {
+                int type;
+                infile >> type;
+                ident -> SetType(i,Identifications::ID_TYPE(type));
+              }
+          }
+
+        if (strcmp (str, "materials") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                int nr;
+                string mat;
+                infile >> nr >> mat;
+                SetMaterial (nr, mat.c_str());
+              }
+          }
+
+        if ( strcmp (str, "bcnames" ) == 0 )
+          {
+            infile >> n;
+            NgArray<int,0> bcnrs(n);
+            SetNBCNames(n);
+            for ( i = 1; i <= n; i++ )
+              {
+                string nextbcname;
+                infile >> bcnrs[i-1] >> nextbcname;
+                bcnames[bcnrs[i-1]-1] = new string(nextbcname);
+              }
+
+            if ( GetDimension() == 2 )
+              {
+                for (i = 1; i <= GetNSeg(); i++)
+                  {
+                    Segment & seg = LineSegment (i);
+                    if ( seg.si <= n )
+                      seg.SetBCName (bcnames[seg.si-1]);
+                    else
+                      seg.SetBCName(0);
+                  }
+              }
+            else
+              {
+                for (SurfaceElementIndex sei = 0; sei < GetNSE(); sei++)
+                  {
+                    if ((*this)[sei].GetIndex())
+                      {
+                        int bcp = GetFaceDescriptor((*this)[sei].GetIndex ()).BCProperty();
+                        if ( bcp <= n )
+                          GetFaceDescriptor((*this)[sei].GetIndex ()).SetBCName(bcnames[bcp-1]);
+                        else
+                          GetFaceDescriptor((*this)[sei].GetIndex ()).SetBCName(0);
+
+                      }
+                  }
+
+              }
+          }
+
+	if ( strcmp (str, "cd2names" ) == 0)
+	  {
+	    infile >> n;
+	    NgArray<int,0> cd2nrs(n);
+	    SetNCD2Names(n);
+	    for( i=1; i<=n; i++)
+	      {
+		string nextcd2name;
+		infile >> cd2nrs[i-1] >> nextcd2name;
+		cd2names[cd2nrs[i-1]-1] = new string(nextcd2name);
+	      }
+	    if (GetDimension() == 2)
+	      {
+		throw NgException("co dim 2 elements not implemented for dimension 2");
+	      }
+	    else
+	      {
+		for (i = 1; i<= GetNSeg(); i++)
+		  {
+		    Segment & seg = LineSegment(i);
+		    if ( seg.edgenr <= n )
+		      seg.SetBCName (cd2names[seg.edgenr-1]);
+		    else
+		      seg.SetBCName(0);
+		  }
+	      }
+	  }
+
+        if (strcmp (str, "singular_points") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                PointIndex pi;
+                double s; 
+                infile >> pi;
+                infile >> s; 
+                (*this)[pi].Singularity (s);
+              }
+          }
+
+        if (strcmp (str, "singular_edge_left") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                SegmentIndex si;
+                double s; 
+                infile >> si;
+                infile >> s; 
+                (*this)[si].singedge_left = s;
+              }
+          }
+        if (strcmp (str, "singular_edge_right") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                SegmentIndex si;
+                double s; 
+                infile >> si;
+                infile >> s; 
+                (*this)[si].singedge_right = s;
+              }
+          }
+
+        if (strcmp (str, "singular_face_inside") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                SurfaceElementIndex sei;
+                double s; 
+                infile >> sei;
+                infile >> s; 
+                GetFaceDescriptor((*this)[sei].GetIndex()).domin_singular = s;
+              }
+          }
+
+        if (strcmp (str, "singular_face_outside") == 0)
+          {
+            infile >> n;
+            for (i = 1; i <= n; i++)
+              {
+                SurfaceElementIndex sei;
+                double s; 
+                infile >> sei;
+                infile >> s; 
+                GetFaceDescriptor((*this)[sei].GetIndex()).domout_singular = s;
+              }
+          }
+
+        // Philippose - 09/07/2009
+        // Add mesh face colours to Netgen Vol file format
+        // The colours are read in as RGB triplets
+        if (strcmp (str, "face_colours") == 0)
+        {
+           int cnt_facedesc = GetNFD();
+           infile >> n;
+           if(n == cnt_facedesc)
+           {
+              for(i = 1; i <= n; i++)
+              {
+                 int surfnr = 0;
+                 Vec3d surfcolour(0.0,1.0,0.0);
+
+                 infile >> surfnr 
+                        >> surfcolour.X() 
+                        >> surfcolour.Y() 
+                        >> surfcolour.Z();
+
+                 surfnr--;
+
+                 if(surfnr > 0) 
+                 {
+                    for(int facedesc = 1; facedesc <= cnt_facedesc; facedesc++)
+                    {
+                       if(surfnr == GetFaceDescriptor(facedesc).SurfNr())
+                       {
+                          GetFaceDescriptor(facedesc).SetSurfColour(surfcolour);
+                       }
+                    }
+                 }
+              }
+           }
         }
+
+        if (strcmp (str, "endmesh") == 0)
+          endmesh = true;
+
+
+
+        strcpy (str, "");
       }
 
-      if (strcmp (str, "endmesh") == 0) {
-        endmesh = true;
-      }
 
-      strcpy (str, "");
-    }
+
 
     CalcSurfacesOfNode ();
-  
-    // sequential run only
-    if (ntasks == 1) {
-      topology.Update();
-      clusters -> Update();
-    }
+ 
+    if (ntasks == 1) // sequential run only
+      {
+	topology.Update();
+	clusters -> Update();
+      }
 
     SetNextMajorTimeStamp();
+    //  PrintMemInfo (cout);
   }
 
 
