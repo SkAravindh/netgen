@@ -1101,6 +1101,7 @@ namespace nglib
       check_overlapping_boundary = 1;
 
       parthreadenable = 0;
+      parallel_meshing = 1;
       nthreads = 4;
 
       opterrpow = 2;
@@ -1163,6 +1164,7 @@ namespace nglib
       mparam.checkoverlappingboundary = check_overlapping_boundary;
 
       mparam.parthread = parthreadenable;
+      mparam.parallel_meshing = parallel_meshing;
       mparam.nthreads = nthreads;
 
       mparam.opterrpow = opterrpow;

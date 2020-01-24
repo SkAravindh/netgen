@@ -135,6 +135,7 @@ public:
    // Added a couple more parameters into the meshing parameters list
    // from Netgen into Nglib
    int parthreadenable;                 //!< Enable / Disable parallel threads
+   int parallel_meshing;                //!< Enable / Disable parallel meshing
    int nthreads;                        //!< Set number of threads to use
    
    double opterrpow;                    //!< Set worst element measure (pow)
@@ -192,6 +193,7 @@ public:
       - #check_overlap: 1
       - #check_overlapping_boundary: 1
       - #parthreadenable: 0
+      - #parallel_meshing: 1
       - #nthreads: 4
       - #opterrpow: 2
       - #blockfillenable: 1
