@@ -693,7 +693,7 @@ DLL_HEADER Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
                                                  Ng_Meshing_Parameters * mp);
 
 // Nikhil - 09/12/2019
-// generates 3D mesh, empty mesh need not be created.
+// generates 3D mesh, empty mesh must be created.
 DLL_HEADER Ng_Result Ng_GenerateMesh (Ng_STL_Geometry * geom,
                                       Ng_Mesh * mesh,
                                       Ng_Meshing_Parameters * mp);
