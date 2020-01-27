@@ -613,6 +613,22 @@ namespace nglib
    } 
 
 
+   // Nikhil - 27/1/2020
+   // deletes STL Geometry
+   DLL_HEADER void Ng_STL_DeleteGeometry(Ng_STL_Geometry * geom)
+   {
+      if(geom != NULL) {
+         // Delete the STLGeometry structures
+         ((STLGeometry*)geom)->Clear();
+
+         // Now delete the STLGeometry class itself
+         delete (STLGeometry*)geom;
+
+         // Set the Ng_STL_Geometry pointer to NULL
+         geom = NULL;
+      }
+   }
+
 
 
    // after adding triangles (and edges) initialize
