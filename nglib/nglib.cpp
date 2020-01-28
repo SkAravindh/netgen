@@ -1206,6 +1206,8 @@ namespace nglib
       stlparam.resthcloseedgeenable = closeedgeenable;
       stlparam.resthedgeanglefac = edgeanglefact;
       stlparam.resthedgeangleenable = edgeangleenable;
+      stlparam.resthsurfmeshcurvfac = surfmeshcurvfact;
+      stlparam.resthsurfmeshcurvenable = surfmeshcurvenable;
       stlparam.resthlinelengthfac = linelengthfact;
       stlparam.resthlinelengthenable = linelengthenable;
       stlparam.recalc_h_opt = recalc_h_opt_enable;
