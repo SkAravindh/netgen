@@ -666,7 +666,7 @@ DLL_HEADER Ng_STL_Geometry * Ng_STL_LoadGeometry (const char * filename, int bin
 // generate new STL Geometry
 DLL_HEADER Ng_STL_Geometry * Ng_STL_NewGeometry ();
 
-
+// Nikhil - 27/1/2020
 // delete STL Geometry
 DLL_HEADER void Ng_STL_DeleteGeometry (Ng_STL_Geometry * geom);
 
