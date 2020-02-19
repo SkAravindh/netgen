@@ -500,7 +500,7 @@ void STLTopology :: InitSTLGeometry(const NgArray<STLReadTriangle> & readtrigs)
 
   NgArray<int> pintersect;
 
-  pointtol = boundingbox.Diam() * stldoctor.geom_tol_fact;
+  pointtol = 0.0 /*boundingbox.Diam() * stldoctor.geom_tol_fact*/; // Nikhil - 19/2/2020
   PrintMessage(5,"point tolerance = ", pointtol);
   PrintMessageCR(5,"identify points ...");  
 
