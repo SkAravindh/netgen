@@ -604,7 +604,11 @@ namespace nglib
    }
 
 
-
+   // Nikhil - 25/5/2020
+   // saves geometry to STL file
+   DLL_HEADER void Ng_STL_SaveGeometry(Ng_STL_Geometry * geom, const char * filename) {
+      ((STLGeometry*)geom)->Save(filename);
+   }
 
    // generate new STL Geometry
    DLL_HEADER Ng_STL_Geometry * Ng_STL_NewGeometry ()

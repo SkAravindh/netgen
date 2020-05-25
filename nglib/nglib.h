@@ -662,6 +662,9 @@ DLL_HEADER void Ng_HP_Refinement (Ng_Geometry_2D * geom,
 // loads geometry from STL file
 DLL_HEADER Ng_STL_Geometry * Ng_STL_LoadGeometry (const char * filename, int binary = 0);
 
+// Nikhil - 25/5/2020
+// save geometry to STL file
+DLL_HEADER void Ng_STL_SaveGeometry (Ng_STL_Geometry * geom, const char * filename);
 
 // generate new STL Geometry
 DLL_HEADER Ng_STL_Geometry * Ng_STL_NewGeometry ();
