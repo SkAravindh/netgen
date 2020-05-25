@@ -531,7 +531,7 @@ void STLTopology :: InitSTLGeometry(const NgArray<STLReadTriangle> & readtrigs)
 	      foundpos = AddPoint(p);
 	      pointtree->Insert (p, foundpos);
 	    }
-          if (Dist(p, points[foundpos]) > 1e-10)
+          if (Dist(p, points[foundpos]) >  0/*1e-10*/) // Nikhil - 25/5/2020
             cout << "identify close points: " << p << " " << points[foundpos]
                  << ", dist = " << Dist(p, points[foundpos])
                  << endl;
